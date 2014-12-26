@@ -1,8 +1,6 @@
 
 import struct
-
 from inspect import isclass
-from StringIO import StringIO
 
 import vstruct.primitives as vs_prims
 

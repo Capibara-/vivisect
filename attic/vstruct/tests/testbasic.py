@@ -1,9 +1,8 @@
+import io
 import unittest
 
 import vstruct
 from vstruct.primitives import *
-
-from cStringIO import StringIO
 
 class woot(vstruct.VStruct):
     def __init__(self):
@@ -14,11 +13,7 @@ class woot(vstruct.VStruct):
     def pcb_lenfield(self):
         self.vsGetField('strfield').vsSetLength(self.lenfield)
 
-
 class VStructTest(unittest.TestCase):
-
-    #def setUp(self):
-    #def tearDown(self):
 
     def test_vstruct_basicstruct(self):
 
@@ -88,25 +83,24 @@ class VStructTest(unittest.TestCase):
         v.strfield = v_str(size=30)
         v.vsAddParseCallback('lenfield', updatelen)
 
-        v.vsParse('\x01' + 'A' * 30)
+        v.vsParse(b'\x01' + b'A' * 30)
         self.assertEqual( v.vsEmit(), '0141'.decode('hex') )
-
 
     def test_vstruct_classcallback(self):
         v = woot()
-        v.vsParse('\x01' + 'A'*30)
+        v.vsParse(b'\x01' + 'A'*30)
         self.assertEqual( v.vsEmit(), '0141'.decode('hex') )
 
     def test_vstruct_parsefd(self):
         v = woot()
-        sio = StringIO('\x01' + 'A' * 30)
+        sio = io.BytesIO(b'\x01' + b'A' * 30)
         v.vsParseFd(sio)
         self.assertEqual( v.vsEmit(), '0141'.decode('hex') )
 
     def test_vstruct_insertfield(self):
         v = woot()
         v.vsInsertField('ifield', v_uint8(), 'strfield')
-        v.vsParse('\x01BAAAAA')
+        v.vsParse(b'\x01BAAAAA')
         self.assertEqual( v.vsEmit(), '014241'.decode('hex') )
 
     def test_vstruct_floats(self):
@@ -138,17 +132,17 @@ class VStructTest(unittest.TestCase):
         v.y = v_str(size=4)
         v.z = v_uint32(bigend=True)
 
-        v.vsParse('BAAAAABCD', fast=True)
+        v.vsParse(b'BAAAAABCD', fast=True)
 
         self.assertEqual( v.x, 0x42 )
         self.assertEqual( v.y, 'AAAA' )
         self.assertEqual( v.z, 0x41424344 )
 
     def test_vstruct_varray(self):
-        v = vstruct.VArray( [ v_uint8(i) for i in xrange(20) ] )
+        v = vstruct.VArray( [ v_uint8(i) for i in range(20) ] )
         self.assertEqual( v[2], 2 )
-        v.vsParse('A' * 20)
+        v.vsParse(b'A' * 20)
         self.assertEqual( v[2], 0x41 )
 
-    def test_iterbytes(self):
-        raise "WRITE ME"
+    #def test_iterbytes(self):
+        #raise "WRITE ME"

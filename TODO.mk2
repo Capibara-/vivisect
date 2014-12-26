@@ -1,0 +1,57 @@
+
+engauged in a refactor / viv mark2 thought experiment which truly unifies the codebase ( under vivisect ) and allows "from scratch" python3 compat... ( partially due to refactors needed for vtrace wire protocol and the old.broke mess that is vtrace remote / notifiers ) I've got a lot of "lessons learned" architectural ideas ( ie, the new unified "graph" API and event dist, sync RMI via async event dist, etc ) as well as some code organization unification ( ie, do we really need 4 packages with "archs" dirs? ) with the overall goal of making nearly everything "part of vivisect".  Some thoughts, I'd love to hear moar and/or counters.
+
+* py3 is the *base* case, kludge/hacks to support 2.7 ( not the other way )
+* more "data convention" less "data APIs" ( ie, setFooInfo("woot",10) > setFooWoot(10) )
+* trace "wire protocol" allowing C primitive vtrace server for embedded platforms
+   ( basically requires vtrace refactor anyway )
+* 0 use of linear numeric generation for any type of identifier
+* user extensible data storage / distribution in the viv workspace ( via new graph / event subsys )
+* "distfile" helper to allow binary file inclusion in pyz dist in unified way
+* envi goes away ( previously existed to house code that both viv and vtrace depended on )
+* "opcode" constructs become "instructions" which are python primitive data ( with AST based operands!)
+    ( solves the myriad operand introspection problems *and* allows radically simpler symboliks translation)
+    ( possibly (va,pfx,mnem,opers,info) tuples where pfx is prefix masks, and opers is a list of AST primitives )
+* vdb pkg mostly goes away ( it's mostly interface code, and the parts that aren't should be in the trace library )
+* vtrace -> vivisect.trace?
+* vstruct->vivisect.struct? ( icky name collision.. maybe not? maybe rename? )
+* vivisect.mach ( package to house machine abstractions like the new "cpu" and envi's memory / registers )
+* ditch qt ( gui interface via html5 / jquery / web9.0 )
+* "bex" ( binary executable, thx repete ) API which acts the same for "normalizable" exe features
+   ( do away with like 9 parsers )
+* vivisect.bexs ( similar to vivisect.archs ) single unified place for bex base and extensible binary executable format parsing
+* Elf / PE top level modules go away ( still have vivisect.bexs.elf, vivisect.bexs.pe, etc )
+* all machine abstractions support json/primitive serialization ( cpu, regs, memory, etc )
+  ( nasty overhead on binary memory -> base64 etc, but probably worth it for portability... )
+* machine abstractions compatible with "high level" archs ( ie, python / java / MSIL ? )
+* unified plugin/extension system
+* ban pickle/cPickle ( duh )
+* do we want to carve any of the "big" or "generated" content into seperate pkgs for size? prolly not... but maybe?
+* viv's own C syntax parser ( with modular expression "starting point" for parser ( thus pycparsing !ok ) )
+  ( ie, parse *just* a struct def, or *just* a function decl to help user input *and* parse headers/etc to gen APIs )
+* unit tests unit tests unit tests ( shooting for 100% non-interface code coverage )
+* <pkg>.lib.<foo> as default lib/util location? ( ie, import envi.bits -> import vivisect.lib.bits as whatever )
+* <pkg>.tools.<foo> as executables ( allows 0 path knowledge if "installed" )
+* vivbin -> vivisect.tools.viv && vdbbin -> vivisect.tools.vdb
+* ktypes ( @drewvis ) API should live...  in...  vivisect.lib.ktypes? ( then it's ok for vtrace/vdb to use it too! ;) )
+
+also, merry xmas all.  and as always, thanks a million for all your input and work on the various code bases, it's really helped me to have you all to colab / brainstorm / code with :)
+
+
+# random scratch / notes
+
+sys.byteorder = "little" | "big"
+
+int.from_bytes()
+int.to_bytes()
+int.bit_length() ( yay! )
+
+bytes.fromhex()
+
+bytearray ( mutable! )
+memoryview ( maybe useful... maybe not... )
+
+from __future__ import print_function, unicode_literals, division, absolute_import
+
+require py 3.4+
+

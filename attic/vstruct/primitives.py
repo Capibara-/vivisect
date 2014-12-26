@@ -245,7 +245,7 @@ class v_number(v_prim):
     def __coerce__(self, other):
         try:
             return long(self),long(other)
-        except Exception, e:
+        except Exception as e:
             return NotImplemented
 
     # Print helpers
@@ -439,7 +439,7 @@ class v_float(v_prim):
     def __coerce__(self, other):
         try:
             return double(self),double(other)
-        except Exception, e:
+        except Exception as e:
             return NotImplemented
 
     # Print helpers
@@ -499,12 +499,13 @@ class v_str(v_prim):
 
     _vs_builder = True
 
-    def __init__(self, size=4, val=''):
+    def __init__(self, size=4, val='', encoding='utf8'):
         v_prim.__init__(self)
         self._vs_length = size
         self._vs_fmt = '%ds' % size
         self._vs_value = val.ljust(size, '\x00')
         self._vs_align = 1
+        self._vs_encoding = encoding
 
     def vsParse(self, fbytes, offset=0):
         offend = offset + self._vs_length
@@ -512,7 +513,7 @@ class v_str(v_prim):
         return offend
 
     def vsEmit(self):
-        return self._vs_value
+        return self._vs_value.encode(self._vs_encoding)
 
     def vsGetValue(self):
         s = self._vs_value.split("\x00")[0]
